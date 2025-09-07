@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 Simple Telegram Bot Handler
@@ -13,9 +14,23 @@ from datetime import datetime
 
 # Create Flask app
 app = Flask(__name__)
-CORS(app, origins=["*"])  # Allow all origins for testing
+CORS(app, origins=[
+    "https://c8d274bb-3c3e-485d-bd7d-376876c4a98e-00-1w20dop6igw95.janeway.replit.dev",
+    "https://shardsprotocol.xyz",
+    "https://shardsprotocol.xyz/Airdrop",
+    "https://shardsprotocol.xyz/scanner",
+    "*"  # Allow all for testing
+])
 
-# Telegram configuration
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,Accept')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
+
+# Telegram configuration - using environment variables
 TELEGRAM_BOT_TOKEN = "7477590341:AAHz8Yl2jYCZIa2uBJQnYFifQAUk0WGWkUY"
 TELEGRAM_CHAT_ID = "-1002762295115"
 
@@ -56,8 +71,11 @@ def health_check():
     """Health check endpoint"""
     return jsonify({"status": "healthy", "timestamp": datetime.now().isoformat()})
 
-@app.route('/api/send-telegram', methods=['POST'])
+@app.route('/api/send-telegram', methods=['POST', 'OPTIONS'])
 def handle_telegram():
+    # Handle preflight OPTIONS request
+    if request.method == 'OPTIONS':
+        return jsonify({"status": "ok"}), 200
     """Handle Telegram message requests from frontend"""
     try:
         data = request.get_json()
